@@ -1,0 +1,20 @@
+.page { flex: 1; width: 100%; min-width: 0; padding: 32px 24px 64px; background-position: center top -240px; background-size: 1440px auto; background-repeat: no-repeat; }
+.card { display: flex; flex-direction: column; align-items: center; gap: 20px; width: min(100%, 900px); margin: 0 auto; padding: 32px 24px; background: var(--bg-primary); border: 1px solid var(--border-primary); border-radius: 24px; box-shadow: 0 12px 24px rgba(78,100,233,.05); text-align: center; }
+.trophy { width: 80px; height: 80px; object-fit: cover; }
+.eyebrow { color: var(--text-secondary); font-size: var(--text-xs); }
+.card h1 { font-size: 24px; overflow-wrap: anywhere; }
+.task { color: var(--text-secondary); overflow-wrap: anywhere; }
+.card section { width: 100%; }
+.metrics { display: flex; flex-direction: column; width: 100%; margin-bottom: 20px; }
+.row { display: grid; grid-template-columns: 200px repeat(3, minmax(0, 1fr)); gap: 16px; padding: 20px 0; text-align: left; align-items: center; }
+.row + .row { border-top: 1px solid var(--border-primary); }
+.row strong { overflow-wrap: anywhere; }
+.row div { display: flex; flex-direction: column; gap: 8px; }
+.row b { font-size: 20px; }
+.row span { color: var(--text-secondary); font-size: var(--text-sm); }
+.winner b { color: var(--color-accent); }
+.actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+.actions button, .page > button { border: 0; border-radius: 999px; padding: 12px 20px; font-size: var(--text-base); color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 10%, transparent); cursor: pointer; }
+.actions .primary { color: white; background: var(--color-sky); }
+.actions button:disabled { opacity: .5; cursor: not-allowed; }
+@media (max-width: 700px) { .page { padding: 20px 16px; } .card { padding: 24px 16px; } .row { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; } .row > strong { grid-column: 1 / -1; } .row b { font-size: 16px; } }

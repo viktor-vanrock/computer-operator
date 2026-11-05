@@ -1,0 +1,11 @@
+.strip { display: flex; gap: 5px; overflow-x: auto; min-height: 200px; padding-bottom: 8px; }
+.card { flex: 0 0 248px; min-width: 0; padding: 12px; border: 1px solid var(--border-primary); background: var(--bg-primary); animation: slideIn 240ms ease-out both; border-radius: 15px; box-sizing: border-box; overflow-wrap: anywhere; font-size: 12px; line-height: 1.4; }
+.heading { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-secondary); }
+.badge { display: inline-flex; padding: 4px 8px; border-radius: 4px; font-size: 11px; }
+.heading time { margin-left: auto; }
+.card p { margin: 8px 0; }
+.card pre { white-space: pre-wrap; font-size: 11px; }
+.card summary { cursor: pointer; margin-top: 8px; }
+
+@keyframes slideIn { from { opacity: 0; transform: translateX(32px); } to { opacity: 1; transform: translateX(0); } }
+@media (prefers-reduced-motion: reduce) { .card { animation: none; } }

@@ -1,0 +1,57 @@
+# Общие values фронтов (tech и demo); стенд — front[-demo]-<stand>.yml.
+replicaCount: 1
+
+image:
+  pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: gitlab-registry-secret
+
+service:
+  enabled: true
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
+    # в cce-newprod-k8s у контроллера ssl-redirect: false глобально; secure-cookie сессии требует https
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    # WS арены и Guacamole (RDP) идут через nginx фронта; RDP-сессии по 10+ мин, берём с запасом 1 ч
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+volumes:
+  - name: cache
+    emptyDir:
+      sizeLimit: 100Mi
+  - name: run
+    emptyDir:
+      sizeLimit: 10Mi
+volumeMounts:
+  - name: cache
+    mountPath: "/var/cache/nginx"
+  - name: run
+    mountPath: "/var/run"
+
+livenessProbe:
+  tcpSocket:
+    port: 8080
+readinessProbe:
+  tcpSocket:
+    port: 8080

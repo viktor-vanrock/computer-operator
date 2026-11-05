@@ -1,0 +1,113 @@
+.root {
+  width: min(100%, 900px);
+  min-height: 112px;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 8px 8px 8px 24px;
+  border: 1px solid rgba(78, 100, 233, 0.1);
+  border-radius: 32px;
+  background: var(--bg-primary);
+  transition: border-color var(--duration-normal) var(--ease-out), box-shadow var(--duration-normal) var(--ease-out);
+}
+
+.root:focus-within {
+  border-color: rgba(78, 100, 233, 0.3);
+  box-shadow: 0 0 0 1px rgba(78, 100, 233, 0.3);
+}
+
+.textarea {
+  min-width: 0;
+  flex: 1;
+  align-self: stretch;
+  padding: 20px 0;
+  border: 0;
+  outline: 0;
+  resize: none;
+  overflow: hidden;
+  font-family: var(--font-text);
+  font-size: var(--text-lg);
+  font-weight: var(--font-normal);
+  line-height: 1.2;
+  color: var(--text-primary);
+  background: transparent;
+}
+
+.textarea:focus-visible {
+  outline: none;
+}
+
+.textarea::placeholder { color: rgba(11, 23, 43, 0.54); }
+.textarea:disabled { cursor: wait; }
+
+.submitButton {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-full);
+  color: #fff;
+  background: var(--color-sky);
+  cursor: pointer;
+  transition: transform var(--duration-normal) var(--ease-out), background var(--duration-normal) var(--ease-out);
+}
+
+.submitButton:hover:not(:disabled) {
+  background: #4057db;
+  transform: translateY(-1px);
+}
+
+.submitButton:disabled { cursor: not-allowed; opacity: 0.48; }
+
+.submitIcon {
+  width: 24px;
+  height: 24px;
+}
+
+.loader {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+:global([data-theme='dark']) .textarea::placeholder {
+  color: rgba(240, 240, 248, 0.6);
+}
+
+@media (max-width: 640px) {
+  .root { min-height: 96px; padding-left: 18px; }
+  .textarea { padding: 16px 0; font-size: var(--text-base); }
+}
+
+@media (min-width: 2560px) {
+  .root {
+    width: min(100%, 1200px);
+    min-height: 144px;
+    padding: 12px 12px 12px 32px;
+    border-radius: 40px;
+  }
+
+  .textarea {
+    padding: 28px 0;
+    font-size: var(--text-2xl);
+  }
+
+  .submitButton {
+    width: 64px;
+    height: 64px;
+    flex-basis: 64px;
+  }
+
+  .submitIcon {
+    width: 32px;
+    height: 32px;
+  }
+}

@@ -1,0 +1,13 @@
+image:
+  repository: registry.sberdevices.ru/rndbtoc/computer-operator/computer-operator-front-stage
+
+ingress:
+  hosts:
+    - host: computer-operator.dev.mlrnd.ru
+      paths:
+        - path: /
+          pathType: Prefix
+          port: 8080
+  tls:
+    - secretName: computer-operator
+      hosts: [computer-operator.dev.mlrnd.ru]

@@ -1,0 +1,18 @@
+node_modules/
+**/node_modules/
+.git/
+.specify/
+specs/
+coverage/
+**/coverage/
+*.log*
+**/*.log*
+.env*
+**/.env*
+.DS_Store
+.idea/
+.vscode/
+.worktrees/
+data/
+minio-data/
+# Frontend images COPY the dist produced by CI; keep those build artifacts.

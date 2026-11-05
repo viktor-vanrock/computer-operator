@@ -1,0 +1,56 @@
+# Общие values backend-а; стенд — back-<stand>.yml (helm мержит словари, списки заменяет целиком).
+replicaCount: 1
+
+# Runtime owner requires the old writer to exit before a new pod recovers.
+strategy:
+  type: Recreate
+
+image:
+  repository: registry.sberdevices.ru/rndbtoc/computer-operator/computer-operator-back
+  pullPolicy: IfNotPresent
+  command: ['sh', '-c']
+  args: ['. /vault/secrets/config && npx prisma migrate deploy && node dist/server.js']
+
+imagePullSecrets:
+  - name: gitlab-registry-secret
+
+# Свой SA на каждый стенд; роль Vault computer-operator привязана к этому имени (stage-kube и cce-newprod-k8s)
+serviceAccount:
+  create: true
+  name: computer-operator
+
+podAnnotations:
+  vault.hashicorp.com/agent-inject: 'true'
+  vault.hashicorp.com/agent-pre-populate-only: "true"
+  vault.hashicorp.com/role: 'computer-operator'
+
+service:
+  enabled: true
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 3001
+      protocol: TCP
+      targetPort: 3001
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
+    # в cce-newprod-k8s у контроллера ssl-redirect: false глобально; secure-cookie сессии требует https
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/use-regex: 'true'
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    # WS-сессии арены живут дольше дефолтных 60 с
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+
+livenessProbe:
+  tcpSocket:
+    port: 3001
+readinessProbe:
+  httpGet:
+    path: /health/ready
+    port: 3001

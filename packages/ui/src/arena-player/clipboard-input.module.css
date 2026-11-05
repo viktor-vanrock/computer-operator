@@ -1,0 +1,12 @@
+.error {
+  position: fixed;
+  bottom: var(--space-6);
+  left: var(--space-6);
+  z-index: var(--z-modal);
+  padding: var(--space-3);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-card);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-card);
+}

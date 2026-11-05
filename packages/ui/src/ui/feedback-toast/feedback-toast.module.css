@@ -1,0 +1,69 @@
+.feedback {
+  position: fixed;
+  z-index: var(--z-toast);
+  left: max(32px, env(safe-area-inset-left));
+  bottom: max(32px, env(safe-area-inset-bottom));
+  width: min(calc(100% - 64px), 400px);
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  border: 0.5px solid var(--border-secondary);
+  border-radius: 24px;
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-dropdown);
+}
+
+.icon {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-full);
+  color: var(--color-error);
+  background: color-mix(in srgb, var(--color-error) 10%, var(--bg-elevated));
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+  padding-top: 2px;
+  overflow-wrap: anywhere;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  line-height: 20px;
+}
+
+.text {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  line-height: 16px;
+}
+
+.close {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  padding: 0;
+  border: 0;
+  color: var(--text-secondary);
+  background: transparent;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .feedback {
+    left: max(16px, env(safe-area-inset-left));
+    bottom: max(16px, env(safe-area-inset-bottom));
+    width: min(calc(100% - 32px), 400px);
+  }
+}

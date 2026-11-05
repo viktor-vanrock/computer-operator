@@ -1,0 +1,97 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.card {
+  position: relative;
+  padding: var(--space-6);
+  border-radius: var(--radius-card);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+  cursor: default;
+  transition:
+    transform var(--duration-moderate) var(--ease-spring),
+    background var(--duration-moderate) var(--ease-out),
+    border-color var(--duration-moderate) var(--ease-out),
+    box-shadow var(--duration-moderate) var(--ease-out);
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.055);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.28);
+}
+
+.iconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--accent, #5ab0ff) 12%, transparent);
+  color: var(--accent, #5ab0ff);
+  flex-shrink: 0;
+}
+
+.cardLabel {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+  margin: 0;
+}
+
+.cardDesc {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+  margin: 0;
+  flex: 1;
+  text-align: left;
+}
+
+/* Светлая тема */
+:global([data-theme='light']) .card {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(81, 93, 173, 0.1);
+}
+
+:global([data-theme='light']) .card:hover {
+  background: rgba(255, 255, 255, 0.78);
+  border-color: rgba(81, 93, 173, 0.18);
+  box-shadow: 0 8px 24px rgba(81, 93, 173, 0.1);
+}
+
+/* Адаптив */
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+    max-width: 400px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-3);
+  }
+
+  .card {
+    padding: var(--space-5);
+  }
+}

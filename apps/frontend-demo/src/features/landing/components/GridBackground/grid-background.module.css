@@ -1,0 +1,79 @@
+.wrapper {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Aurora ───────────────────────────────────────────────────── */
+
+.aurora {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.auroraBlob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(72px);
+  will-change: transform;
+}
+
+.auroraBlob1 {
+  width: 55%;
+  height: 55%;
+  background: rgba(50, 65, 210, 0.16);
+  top: -12%;
+  left: -8%;
+  animation: aurora1 6s ease-in-out infinite alternate;
+}
+
+.auroraBlob2 {
+  width: 50%;
+  height: 60%;
+  background: rgba(40, 200, 160, 0.12);
+  bottom: -18%;
+  right: -6%;
+  animation: aurora2 8s ease-in-out infinite alternate;
+}
+
+.auroraBlob3 {
+  width: 45%;
+  height: 45%;
+  background: rgba(130, 45, 230, 0.1);
+  top: 28%;
+  left: 38%;
+  animation: aurora3 10s ease-in-out infinite alternate;
+}
+
+@keyframes aurora1 {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(22%, 18%) scale(1.14); }
+}
+
+@keyframes aurora2 {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(-20%, -22%) scale(0.88); }
+}
+
+@keyframes aurora3 {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(18%, -20%) scale(1.12); }
+}
+
+:global([data-theme='light']) .auroraBlob1 {
+  background: rgba(50, 65, 210, 0.2);
+  filter: blur(56px);
+}
+
+:global([data-theme='light']) .auroraBlob2 {
+  background: rgba(40, 200, 160, 0.16);
+  filter: blur(56px);
+}
+
+:global([data-theme='light']) .auroraBlob3 {
+  background: rgba(130, 45, 230, 0.15);
+  filter: blur(48px);
+}

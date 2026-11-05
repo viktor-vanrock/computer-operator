@@ -1,0 +1,244 @@
+# Pipeline: MR, main и ручной Run pipeline (любая ветка).
+# Автоматически: version → test. Дальше кнопки стендов (stage start): dev-* с любой ветки, prod-* только из main;
+# кнопка тянет build → image → deploy только своего стенда. security — только main.
+# GitLab CI Variables для фронтов: {DEV,PROD}_VITE_API_URL, _WS_URL, _GUACAMOLE_URL, _FF_LAND_STAT
+include:
+  - project: rndml-public/devops/job-templates
+    file: [.nodejs-templates.yml, .deploy.yml, .security-sast-sca.yml, .security-container.yml]
+
+workflow:
+  auto_cancel:
+    on_new_commit: interruptible
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    # Ручной Run pipeline на любой ветке — для деплоя её в любой стенд
+    - if: $CI_PIPELINE_SOURCE == "web"
+
+stages: [version, test, start, build, image, deploy, security]
+
+default:
+  interruptible: true
+
+variables:
+  NODE_IMAGE: registry.sberdevices.ru/rndml/devops/dockerfiles/nodejs-runtime-24:24.17.0
+  NPM_REGISTRY: https://nexus.sberdevices.ru/repository/npm-proxy/
+
+version:
+  extends: .version
+  stage: version
+  tags: [d-rndml-build]
+
+# ─── Тесты ───────────────────────────────────────────────────────────────────
+
+.node:
+  image: $NODE_IMAGE
+  tags: [d-rndml-build]
+  needs: [version]
+  cache:
+    key: npm
+    paths: [.npm/]
+  before_script:
+    - npm config set registry $NPM_REGISTRY
+    - npm ci --cache .npm --workspace=apps/$APP --workspace=packages/ui --include-workspace-root
+
+test-back:
+  extends: .node
+  stage: test
+  # prisma generate качает движки с binaries.prisma.sh: нужен раннер с интернетом,
+  # а Nexus с kube-stage недоступен — ставим пакеты из публичного registry
+  tags: [kube-stage]
+  variables: {APP: backend, NPM_REGISTRY: "https://registry.npmjs.org/"}
+  script:
+    - npm run db:generate --workspace=apps/backend
+    - npm run test --workspace=apps/backend
+
+test-front-demo:
+  extends: .node
+  stage: test
+  variables: {APP: frontend-demo}
+  script:
+    - npm run test --workspace=apps/frontend-demo
+
+# ─── Кнопки стендов: ручной запуск тянет сборку, образ и деплой только этого стенда ──
+# dev-* — с любой ветки, prod-* — только из main.
+# dev: computer-operator.dev.mlrnd.ru (tech + /api), computer-operator-demo.dev.mlrnd.ru
+# prod: computer-operator.mlrnd.ru (tech + /api), computer-operator-demo.mlrnd.ru
+
+.prod-only:
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+.start:
+  stage: start
+  image: $NODE_IMAGE
+  tags: [d-rndml-build]
+  needs: [test-back, test-front-demo]
+  when: manual
+  interruptible: false
+  variables: {GIT_STRATEGY: none}
+  script: [echo "Выкатка $CI_JOB_NAME"]
+
+dev-back: {extends: .start}
+dev-front-tech: {extends: .start}
+dev-front-demo: {extends: .start}
+prod-back: {extends: [.start, .prod-only]}
+prod-front-tech: {extends: [.start, .prod-only]}
+prod-front-demo: {extends: [.start, .prod-only]}
+
+# ─── Сборка фронтов: под каждый стенд свой бандл (VITE_* вшиваются на build) ──
+
+.build-front:
+  extends: .node
+  stage: build
+  script:
+    - for v in API_URL WS_URL GUACAMOLE_URL FF_LAND_STAT; do export VITE_$v="$(printenv ${STAND}_VITE_$v)"; done
+    - npm run build --workspace=apps/$APP -- --outDir dist-$STAND
+  artifacts:
+    paths: [apps/$APP/dist-$STAND/]
+    expire_in: 2 weeks
+
+build-front-tech-dev:
+  extends: .build-front
+  needs: [version, dev-front-tech]
+  variables: {APP: frontend-tech, STAND: DEV}
+
+build-front-demo-dev:
+  extends: .build-front
+  needs: [version, dev-front-demo]
+  variables: {APP: frontend-demo, STAND: DEV}
+
+build-front-tech-prod:
+  extends: [.build-front, .prod-only]
+  needs: [version, prod-front-tech]
+  variables: {APP: frontend-tech, STAND: PROD}
+
+build-front-demo-prod:
+  extends: [.build-front, .prod-only]
+  needs: [version, prod-front-demo]
+  variables: {APP: frontend-demo, STAND: PROD}
+
+# ─── Образы (имена образов исторические) ─────────────────────────────────────
+
+.image-back:
+  extends: .kaniko
+  stage: image
+  tags: [ecs-stage-gitlab-runner]
+  variables:
+    DOCKERFILE: apps/backend/Dockerfile
+    PROJECT_NAME: computer-operator-back
+
+image-back-dev:
+  extends: .image-back
+  needs: [version, dev-back]
+
+image-back-prod:
+  extends: [.image-back, .prod-only]
+  needs: [version, prod-back]
+
+.image-front:
+  extends: .kaniko
+  stage: image
+  tags: [d-rndml-build]
+  variables:
+    DOCKERFILE: apps/$APP/Dockerfile
+    DOCKER_ADDITION_ARGS_LIST: --build-arg DIST=dist-$STAND
+
+image-front-tech-dev:
+  extends: .image-front
+  needs: [version, build-front-tech-dev]
+  variables: {APP: frontend-tech, STAND: DEV, PROJECT_NAME: computer-operator-front-stage}
+
+image-front-demo-dev:
+  extends: .image-front
+  needs: [version, build-front-demo-dev]
+  variables: {APP: frontend-demo, STAND: DEV, PROJECT_NAME: computer-operator-front-demo-stage}
+
+image-front-tech-prod:
+  extends: [.image-front, .prod-only]
+  needs: [version, build-front-tech-prod]
+  variables: {APP: frontend-tech, STAND: PROD, PROJECT_NAME: computer-operator-front-prod}
+
+image-front-demo-prod:
+  extends: [.image-front, .prod-only]
+  needs: [version, build-front-demo-prod]
+  variables: {APP: frontend-demo, STAND: PROD, PROJECT_NAME: computer-operator-front-demo-prod}
+
+# ─── Деплой: идёт сам после образа своего стенда ─────────────────────────────
+# dev — cce-staging-k8s, namespace d-rndbtoc-computeroperator; prod — cce-newprod-k8s, namespace computer-operator.
+# values: база envs/<back|front>.yml + envs/<APP>-<STAND>.yml
+
+.deploy:
+  extends: .kube_deploy
+  stage: deploy
+  tags: [b2c-build-runner]
+  interruptible: false
+  variables:
+    ENVIRONMENT: dev-k8s  # как у прежних dev-джоб
+    APP_NAMESPACE: d-rndbtoc-computeroperator
+    CHART_DIR: ./helm
+    CHART_NAME: "."
+    CHART_REF: master
+    CHART_REPO: https://gitlab-ci-token:$CI_JOB_TOKEN@git.sberdevices.ru/rndml/devops/helm-template.git
+    CI_PROJECT_NAMESPACE: rndbtoc/computer-operator
+  before_script:
+    # .kube_deploy подставляет $VALUES_PATH без кавычек — так передаём два values-файла
+    - export VALUES_PATH="envs/${APP%%-*}.yml --values envs/$APP-$STAND.yml"
+    - !reference [.kube_deploy, before_script]
+
+.deploy-prod:
+  extends: [.deploy, .prod-only]
+  tags: [cce-rndml-prod]
+  variables:
+    ENVIRONMENT: prod_GK
+    APP_NAMESPACE: computer-operator
+
+deploy-dev-back:
+  extends: .deploy
+  needs: [version, image-back-dev]
+  variables: {STAND: dev, APP: back, APP_NAME: computer-operator-back}
+
+deploy-dev-front-tech:
+  extends: .deploy
+  needs: [version, image-front-tech-dev]
+  variables: {STAND: dev, APP: front-tech, APP_NAME: computer-operator-front}
+
+deploy-dev-front-demo:
+  extends: .deploy
+  needs: [version, image-front-demo-dev]
+  variables: {STAND: dev, APP: front-demo, APP_NAME: computer-operator-front-demo}
+
+deploy-prod-back:
+  extends: .deploy-prod
+  needs: [version, image-back-prod]
+  variables: {STAND: prod, APP: back, APP_NAME: computer-operator-back}
+
+deploy-prod-front-tech:
+  extends: .deploy-prod
+  needs: [version, image-front-tech-prod]
+  variables: {STAND: prod, APP: front-tech, APP_NAME: computer-operator-front}
+
+deploy-prod-front-demo:
+  extends: .deploy-prod
+  needs: [version, image-front-demo-prod]
+  variables: {STAND: prod, APP: front-demo, APP_NAME: computer-operator-front-demo}
+
+# ─── Security (только default branch) ────────────────────────────────────────
+
+# Имена джоб заданы шаблонами job-templates, их не переименовываем.
+# stage указан в каждой джобе: ключи шаблонной джобы перекрывают то, что приходит через extends
+.security:
+  allow_failure: true
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+sast: {extends: .security, stage: security}
+sca: {extends: .security, stage: security}
+sast-report: {extends: [.sast-report, .security], stage: security, when: manual}
+sca-report: {extends: [.sca-report, .security], stage: security, when: manual}
+container-security: {extends: .security, stage: security, needs: [image-back-prod]}
+container-security-report:
+  extends: [.container-security-report, .security]
+  stage: security
+  when: manual
+  needs: [container-security]

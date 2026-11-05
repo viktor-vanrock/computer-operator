@@ -1,0 +1,251 @@
+/* ══════════════════════════════════════════════════════
+   PreparingLoader
+   ══════════════════════════════════════════════════════ */
+
+.preparingWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
+  max-width: 400px;
+  width: 100%;
+  padding: var(--space-8) var(--space-4);
+}
+
+/* ── Orb animation ── */
+.orbWrap {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.orbOuter {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid rgba(33, 160, 56, 0.15);
+  animation: orbPulse 3s ease-in-out infinite;
+}
+
+.orbMiddle {
+  position: absolute;
+  inset: 16px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(33, 160, 56, 0.25);
+  animation: orbPulse 3s ease-in-out infinite 0.5s;
+}
+
+.orbInner {
+  position: absolute;
+  inset: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(33, 160, 56, 0.15) 0%, rgba(0, 188, 212, 0.1) 100%);
+  border: 1.5px solid rgba(33, 160, 56, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: orbPulse 3s ease-in-out infinite 1s;
+}
+
+.orbIcon {
+  color: var(--color-agent);
+  opacity: 0.9;
+}
+
+@keyframes orbPulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+
+/* Orbiting particles */
+.orbit1 {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  animation: orbit 4s linear infinite;
+}
+.orbit2 {
+  position: absolute;
+  inset: 10px;
+  border-radius: 50%;
+  animation: orbit 6s linear infinite reverse;
+}
+.orbit3 {
+  position: absolute;
+  inset: 22px;
+  border-radius: 50%;
+  animation: orbit 3s linear infinite;
+}
+
+@keyframes orbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.particle {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  box-shadow: 0 0 8px rgba(33, 160, 56, 0.6);
+}
+
+.particleSm {
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-teal-400);
+  box-shadow: 0 0 6px rgba(0, 188, 212, 0.5);
+}
+
+/* ── Titles ── */
+.preparingTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+  text-align: center;
+}
+
+.preparingSubtitle {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: var(--leading-normal);
+  margin-top: calc(-1 * var(--space-4));
+}
+
+/* ── Steps list ── */
+.stepsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+  align-self: stretch;
+}
+
+.stepRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid transparent;
+  transition:
+    background var(--duration-moderate) var(--ease-out),
+    border-color var(--duration-moderate) var(--ease-out);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.stepDone {
+  background: rgba(33, 160, 56, 0.06);
+  border-color: rgba(33, 160, 56, 0.15);
+  color: var(--color-agent);
+}
+
+.stepActive {
+  background: rgba(33, 160, 56, 0.1);
+  border-color: rgba(33, 160, 56, 0.3);
+  color: var(--text-primary);
+}
+
+:global([data-theme='light']) .stepActive {
+  background: rgba(33, 160, 56, 0.08);
+}
+
+.stepIcon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: inherit;
+}
+
+.spinnerIcon {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.stepLabel {
+  flex: 1;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+}
+
+.stepCheck {
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  color: var(--color-agent);
+  flex-shrink: 0;
+}
+
+/* ── Progress bar ── */
+.progressTrack {
+  width: 100%;
+  height: 4px;
+  background: var(--bg-muted);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--gradient-primary);
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 8px rgba(33, 160, 56, 0.4);
+}
+
+.progressLabel {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  align-self: flex-end;
+  margin-top: calc(-1 * var(--space-4));
+}
+
+@media (min-width: 2560px) {
+  .preparingWrap {
+    max-width: 520px;
+    gap: var(--space-8);
+  }
+
+  .orbWrap {
+    width: 160px;
+    height: 160px;
+  }
+
+  .orbMiddle {
+    inset: 22px;
+  }
+
+  .orbInner {
+    inset: 44px;
+  }
+
+  .preparingTitle {
+    font-size: var(--text-2xl);
+  }
+
+  .preparingSubtitle {
+    font-size: var(--text-base);
+  }
+}

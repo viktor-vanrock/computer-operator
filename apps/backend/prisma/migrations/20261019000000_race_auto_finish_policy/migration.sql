@@ -1,0 +1,1 @@
+ALTER TABLE "SessionRace" ADD COLUMN "autoFinishOnAgent" BOOLEAN NOT NULL DEFAULT true;

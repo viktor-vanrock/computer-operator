@@ -1,0 +1,183 @@
+/* ═══════════════════════════════════════════════════════
+   ArenaPlayer — панель с плеером / лоадером / ошибкой
+   ═══════════════════════════════════════════════════════ */
+
+.panel {
+  min-height: 0;
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: var(--space-4);
+  position: relative;
+}
+
+/* ── Player wrap ── */
+.playerWrap {
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: #000;
+  position: relative;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ── Guacamole hidden (подключение идёт, но не показываем до RUNNING) ── */
+.guacFrameHidden {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* ── Guacamole frame ── */
+.guacFrame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: var(--radius-card);
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 10;
+  position: relative;
+}
+
+.interactive { pointer-events: auto; }
+
+.guacFrame > div { position: absolute !important; }
+
+/* ── Центрированные состояния ── */
+.centerState {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Error card ── */
+.errorCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-10) var(--space-12);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(243, 27, 48, 0.2);
+  border-radius: var(--radius-card);
+  text-align: center;
+  max-width: 360px;
+}
+
+:global([data-theme='light']) .errorCard {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(243, 27, 48, 0.15);
+}
+
+.errorIconWrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(243, 27, 48, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f31b30;
+}
+
+.errorTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+.errorSubtitle {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+}
+
+.errorCode {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: #f31b30;
+  background: rgba(243, 27, 48, 0.08);
+  border: 1px solid rgba(243, 27, 48, 0.2);
+  border-radius: var(--radius-button);
+  padding: var(--space-1) var(--space-3);
+  letter-spacing: 0.04em;
+}
+
+:global([data-theme='light']) .errorCode {
+  background: rgba(243, 27, 48, 0.06);
+}
+
+.retryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-5);
+  height: var(--button-height-md);
+  background: var(--gradient-ai);
+  border: none;
+  border-radius: var(--radius-button);
+  font-family: var(--font-text);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(81, 93, 173, 0.3);
+  transition: opacity var(--duration-normal) var(--ease-out), transform var(--duration-normal) var(--ease-out);
+  margin-top: var(--space-1);
+}
+
+.retryBtn:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.retryBtn:disabled,
+.backBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.retryBtn:focus-visible,
+.backBtn:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.errorActions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-5);
+  height: var(--button-height-md);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-button);
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.restartError {
+  color: var(--border-error);
+  font-size: var(--text-xs);
+}

@@ -1,0 +1,39 @@
+.logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  /* SVG и текст наследуют currentColor от враппера */
+  color: var(--logo-color);
+}
+
+/* ── Icon (SVG) ───────────────────────────────────────────── */
+
+.icon {
+  display: block;
+  flex-shrink: 0;
+}
+
+.sm .icon { height: 20px; }
+.md .icon { height: 24px; }
+.lg .icon { height: 32px; }
+
+/* ── AI text ──────────────────────────────────────────────── */
+
+.aiText {
+  font-family: var(--font-display);
+  font-weight: var(--font-bold);
+  line-height: 1;
+  color: var(--color-royal);
+}
+
+[data-theme='dark'] .logo {
+  color: var(--text-primary);
+}
+
+[data-theme='dark'] .aiText {
+  color: var(--text-primary);
+}
+
+.sm .aiText { font-size: var(--text-lg); }
+.md .aiText { font-size: var(--text-xl); }
+.lg .aiText { font-size: var(--text-2xl); }

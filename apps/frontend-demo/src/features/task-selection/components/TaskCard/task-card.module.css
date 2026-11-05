@@ -1,0 +1,40 @@
+/* Стиль в едином ключе с карточками лендинга (feature-cards) */
+.card {
+  width: 100%;
+  min-height: 76px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-xl);
+  background: color-mix(in srgb, var(--bg-primary) 92%, transparent);
+  border: 1px solid var(--border-primary);
+  overflow: hidden;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: var(--shadow-xs);
+  transition:
+    border-color var(--duration-moderate) var(--ease-out),
+    background var(--duration-moderate) var(--ease-out),
+    box-shadow var(--duration-moderate) var(--ease-out),
+    transform var(--duration-moderate) var(--ease-out);
+}
+
+.card:hover {
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.card.selected {
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--bg-primary));
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 14%, transparent);
+}
+
+.title {
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+  line-height: var(--leading-normal);
+}

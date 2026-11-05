@@ -1,0 +1,6 @@
+export const VM_FLEET_REQUEST_TIMEOUT_MS = 30_000;
+export const VM_FLEET_DELETE_TIMEOUT_MS = 5 * 60_000;
+export const VM_FLEET_DELETE_POLL_INTERVAL_MS = 2_000;
+export const VM_FLEET_RETRY_DELAYS_MS = [500, 1_000, 2_000] as const;
+export const VM_FLEET_RETRYABLE_STATUS_CODES = new Set([408, 429, 500, 502, 503, 504]);
+export const VM_FLEET_READY_STATE = 'READY';

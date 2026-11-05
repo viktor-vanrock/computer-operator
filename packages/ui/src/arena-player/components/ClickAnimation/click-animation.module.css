@@ -1,0 +1,56 @@
+/* ═══════════════════════════════════════════════════════
+   ClickAnimationOverlay — анимированный оверлей кликов
+   ═══════════════════════════════════════════════════════ */
+.overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 20;
+}
+
+/* Обёртка одного клика (нулевой размер, центрируется по координатам) */
+.clickPoint {
+  position: absolute;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  width: 0;
+  height: 0;
+}
+
+.clickPoint * {
+  pointer-events: none;
+}
+
+/* ── Центральная точка ── */
+.centerDot {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border-radius: 50%;
+  background: var(--color-agent, #21a038);
+  box-shadow: 0 0 12px 4px color-mix(in srgb, var(--color-agent, #21a038) 60%, transparent);
+}
+
+/* ── Ripple (первое кольцо) ── */
+.rippleCircle {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  margin: -50px 0 0 -50px;
+  border-radius: 50%;
+  border: 3px solid var(--color-agent, #21a038);
+  background: color-mix(in srgb, var(--color-agent, #21a038) 20%, transparent);
+}
+
+/* ── Ripple (второе кольцо, крупнее) ── */
+.rippleCircleOuter {
+  position: absolute;
+  width: 160px;
+  height: 160px;
+  margin: -80px 0 0 -80px;
+  border-radius: 50%;
+  border: 2px solid var(--color-agent, #21a038);
+  background: color-mix(in srgb, var(--color-agent, #21a038) 8%, transparent);
+}

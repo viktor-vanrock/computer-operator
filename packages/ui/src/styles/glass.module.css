@@ -1,0 +1,16 @@
+/**
+ * Универсальный glass-класс для панелей и карточек.
+ * Используй через composes: glass from '@/styles/glass.module.css';
+ */
+
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+:global([data-theme='light']) .glass {
+  background: rgba(255, 255, 255, 0.55);
+  border-color: rgba(81, 93, 173, 0.1);
+}

@@ -1,0 +1,5 @@
+ALTER TABLE "Session"
+ADD COLUMN "maxIterations" INTEGER,
+ADD COLUMN "modelRetries" INTEGER,
+ADD COLUMN "mouseClickDelay" DOUBLE PRECISION,
+ADD COLUMN "minOperationDelay" DOUBLE PRECISION;

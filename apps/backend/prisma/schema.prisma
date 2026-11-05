@@ -1,0 +1,213 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Task {
+  id                 String    @id @default(uuid())
+  title              String
+  prompt             String
+  imageId            String?
+  difficulty         Int // 1-5: сложность UI-интерфейса в арене
+  isPreset           Boolean   @default(false)
+  isVisible          Boolean   @default(true)
+  createdAt          DateTime  @default(now())
+  sessions           Session[]
+
+  @@index([isPreset])
+}
+
+model Session {
+  id                   String           @id @default(uuid())
+  taskId               String?
+  task                 Task?            @relation(fields: [taskId], references: [id])
+  mode                 SessionMode      @default(SOLO)
+  status               SessionStatus    @default(PENDING)
+  difficulty           Int
+  connectArgs          String?
+  guacAuthToken        String?
+  guacTunnelId         String?
+  vmName               String?
+  guacId               String?
+  agentTaskUuid        String?
+  agentJobId           String?
+  arenaOs              String?
+  customImageId        String?
+  historyMaxStepsCount Int?
+  maxScreenshotsDelay  Int?
+  maxIterations        Int?
+  modelRetries         Int?
+  mouseClickDelay      Float?
+  minOperationDelay    Float?
+  agentLeftModel       String?
+  sharingProfileId     String?
+  resolvedImageId      String?
+  creationKey          String?          @unique
+  creationHash         String?
+  vmClaims             ActiveVmClaim[]
+  vmAcquisitionAttempts VmAcquisitionAttempt[]
+  race                 SessionRace?
+  restartedFromSessionId String?       @unique
+  restartedFrom          Session?      @relation("SessionRestarts", fields: [restartedFromSessionId], references: [id])
+  restartedAs            Session?      @relation("SessionRestarts")
+  metrics              SessionMetrics[]
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  @@index([status])
+  @@index([taskId])
+}
+
+model SessionMetrics {
+  id          String      @id @default(uuid())
+  sessionId   String
+  session     Session     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  participant Participant
+  time        Int         @default(0)
+  steps       Int         @default(0)
+  clicks      Int         @default(0)
+  errors      Int         @default(0)
+  retries     Int         @default(0)
+
+  @@unique([sessionId, participant])
+}
+
+model ActiveVmClaim {
+  vmName          String          @id
+  vmId            String          @unique
+  sessionId       String
+  session         Session         @relation(fields: [sessionId], references: [id], onDelete: Restrict)
+  participant     Participant
+  acquiredAt      DateTime        @default(now())
+  cleanupStatus   VmCleanupStatus @default(ACTIVE)
+  cleanupAttempts Int             @default(0)
+  nextRetryAt     DateTime?
+  lastErrorCode   String?
+
+  @@unique([sessionId, participant])
+  @@index([cleanupStatus, nextRetryAt])
+}
+
+model VmAcquisitionAttempt {
+  id                   String              @id @default(uuid())
+  sessionId            String
+  session              Session             @relation(fields: [sessionId], references: [id], onDelete: Restrict)
+  participant          Participant
+  candidateVmId        String
+  candidateVmName      String
+  assignIdempotencyKey String              @unique
+  status               VmAcquisitionStatus @default(PENDING)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  lastErrorCode        String?
+
+  @@index([sessionId, status])
+}
+
+enum VmCleanupStatus {
+  ACTIVE
+  PENDING
+  FAILED
+}
+
+enum VmAcquisitionStatus {
+  PENDING
+  ASSIGNED
+  UNAVAILABLE
+  COMPENSATING
+  COMPLETE
+}
+
+model Score {
+  id         String   @id @default(uuid())
+  humanTotal Int      @default(0)
+  agentTotal Int      @default(0)
+  updatedAt  DateTime @updatedAt
+}
+
+enum SessionMode {
+  SOLO
+  FULL_DUPLEX
+  HUMAN_VS_AGENT
+}
+
+model SessionRace {
+  sessionId         String @id
+  session           Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  taskTitle         String
+  taskPrompt        String
+  resolvedImageId   String
+  modelId           String? @default("computer-operator")
+  modelLabel        String? @default("Computer Operator")
+  agentProfile      String @default("default")
+  autoFinishOnAgent Boolean @default(true)
+  revision          Int @default(0)
+  nextEventSequence Int @default(1)
+  startedAt         DateTime?
+  finishedAt        DateTime?
+  winner            Participant?
+  finishReason      String?
+  cleanupStatus     String @default("NOT_REQUIRED")
+  errorCode         String?
+  errorMessage      String?
+  participants      RaceParticipant[]
+  actions           RaceAction[]
+}
+
+model RaceParticipant {
+  sessionId        String
+  race             SessionRace @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
+  participant      Participant
+  status           String @default("WAITING")
+  vmName           String?
+  guacId           String?
+  connectArgs      String?
+  guacAuthToken    String?
+  guacTunnelId     String?
+  sharingProfileId String?
+  agentTaskUuid    String?
+  readyAt          DateTime?
+  endedAt          DateTime?
+  cleanedAt        DateTime?
+  steps            Int?
+  lastStep         Int?
+  clicks           Int?
+  eventCount       Int @default(0)
+
+  @@id([sessionId, participant])
+}
+
+model RaceAction {
+  id         String @id @default(uuid())
+  sessionId  String
+  race       SessionRace @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
+  sequence   Int
+  participant Participant
+  eventId    String
+  occurredAt DateTime
+  receivedAt DateTime @default(now())
+  kind       String
+  details    Json
+  text       String?
+  step       Int?
+
+  @@unique([sessionId, sequence])
+  @@unique([sessionId, participant, eventId])
+}
+
+enum SessionStatus {
+  PENDING
+  PREPARING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum Participant {
+  HUMAN
+  AGENT
+}

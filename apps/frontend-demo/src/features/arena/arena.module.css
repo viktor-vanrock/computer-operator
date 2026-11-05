@@ -1,0 +1,47 @@
+/* ═══════════════════════════════════════════════════════
+   Arena Page — root layout
+   ═══════════════════════════════════════════════════════ */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--nav-height));
+  background: transparent;
+  overflow: hidden;
+}
+
+.body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  gap: 0;
+}
+
+/* Левая колонка — плеер */
+.playerCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* Правая колонка — мысли */
+.thoughtsCol {
+  width: clamp(320px, 22vw, 520px);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-left: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+:global([data-theme='light']) .thoughtsCol {
+  border-left-color: rgba(0, 0, 0, 0.06);
+}
+
+@media (min-width: 2560px) {
+  .thoughtsCol {
+    width: clamp(480px, 20vw, 720px);
+  }
+}
