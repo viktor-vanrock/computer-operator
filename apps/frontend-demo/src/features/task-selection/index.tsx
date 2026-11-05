@@ -12,19 +12,20 @@ import { useTaskSelection } from './use-task-selection';
 
 import styles from './task-selection.module.css';
 
-export function TaskSelectionPage() {
+export function TaskSelectionPage({ mode = 'SOLO' }: { mode?: 'SOLO' | 'HUMAN_VS_AGENT' }) {
   const { data: tasks, isLoading: areTasksLoading, isError: areTasksError } = useTasks();
   const {
     customDraft,
     setCustomDraft,
     handleStart,
     isStarting,
+    recoveringLaunch,
     validationError,
     dismissValidationError,
     selectPreset,
     selectedTask,
     startError,
-  } = useTaskSelection();
+  } = useTaskSelection(mode);
 
   useEffect(() => {
     if (!validationError) return undefined;
@@ -39,8 +40,8 @@ export function TaskSelectionPage() {
       <div className={styles.main}>
         <motion.div className={styles.titleBlock} {...FADE_UP}>
           <p className={styles.pageEyebrow}>Арена AI агентов</p>
-          <h1 className={styles.pageTitle}>Введите запрос для агента</h1>
-          <p className={styles.pageSubtitle}>Опишите своё задание или выберите готовое</p>
+          <h1 className={styles.pageTitle}>{mode === 'HUMAN_VS_AGENT' ? 'Соревнование: человек vs агент' : 'Введите запрос для агента'}</h1>
+          <p className={styles.pageSubtitle}>{mode === 'HUMAN_VS_AGENT' ? 'Выполните задание и сравните свой результат с агентом' : 'Опишите своё задание или выберите готовое'}</p>
         </motion.div>
 
         <motion.div
@@ -48,14 +49,21 @@ export function TaskSelectionPage() {
           {...FADE_UP}
           transition={{ ...BASE_TRANSITION, delay: 0.05 }}
         >
-          <CustomTaskForm
+          {recoveringLaunch ? (
+            <div role="alert">
+              <p>Не удалось узнать, началось ли предыдущее соревнование. Восстановите его, прежде чем начать новое.</p>
+              <button type="button" disabled={isStarting} onClick={() => { void handleStart().catch(() => undefined); }}>
+                {isStarting ? 'Восстанавливаем…' : 'Восстановить соревнование'}
+              </button>
+            </div>
+          ) : <CustomTaskForm
             value={customDraft}
             onChange={setCustomDraft}
             onSubmit={handleStart}
             disabled={isStarting}
             isSubmitting={isStarting}
             hasSelectedTask={Boolean(selectedTask)}
-          />
+          />}
           {startError && !validationError ? <p role="alert">{startError.message}</p> : null}
           <div className={styles.quickActions} aria-label="Готовые задания">
             {areTasksLoading ? <span className={styles.quickActionsStatus}>Загружаем задания…</span> : null}
@@ -65,6 +73,7 @@ export function TaskSelectionPage() {
                 key={task.id}
                 className={styles.quickAction}
                 type="button"
+                disabled={isStarting || recoveringLaunch}
                 onClick={() => selectPreset(task)}
               >
                 {task.title}

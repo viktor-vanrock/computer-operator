@@ -1,6 +1,7 @@
-import { Navigate, useParams } from 'react-router-dom';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
 
 import { useSession } from '@arena/ui/api/sessions.api';
+import { ArenaHumanAgent } from '@arena/ui/arena-human-agent';
 import { SessionIdleWarning } from '@arena/ui/ui/session-idle-warning';
 
 import { getModelLabel } from '@/constants/arena';
@@ -12,9 +13,18 @@ import styles from './arena.module.css';
 
 export function ArenaPage() {
   const { sessionId = '' } = useParams<{ sessionId: string }>();
+  const navigate = useNavigate();
 
   const { data: session } = useSession(sessionId);
   if (!session) return <p>Загружаем сессию…</p>;
+  if ('HUMAN_VS_AGENT' === session.mode) return <ArenaHumanAgent
+    sessionId={sessionId}
+    onBack={() => navigate('/human-vs-agent')}
+    showDetails
+    autoFinishOnAgent={false}
+    onRestart={(id) => navigate(`/arena/${id}`, { replace: true })}
+    onFinished={(id) => navigate(`/arena/${id}/results`, { replace: true })}
+  />;
   if ('SOLO' !== session.mode) return <Navigate to="/" replace />;
   return <SoloArena sessionId={sessionId} />;
 }

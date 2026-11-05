@@ -28,11 +28,14 @@ vi.mock('@arena/ui/api/moderation.api', () => ({
     mutateAsync: mockValidateTaskMutateAsync,
     isPending: false,
     error: null,
+    reset: vi.fn(),
   }),
 }));
 
 const mockRaceSession = vi.fn();
-vi.mock('@arena/ui/lib/api-client', () => ({ apiClient: { post: (...args: unknown[]) => mockRaceSession(...args) }, ApiError: class extends Error {} }));
+vi.mock('@arena/ui/lib/api-client', () => ({ apiClient: { post: (...args: unknown[]) => mockRaceSession(...args) }, ApiError: class extends Error {
+  constructor(public code: string, message: string, public status: number) { super(message); }
+} }));
 const mockCreateSessionMutateAsync = vi.fn();
 vi.mock('@arena/ui/api/sessions.api', () => ({
   useCreateSession: () => ({
@@ -272,20 +275,74 @@ describe('useTaskSelection', () => {
   });
 });
 
-describe('demo SOLO restriction', () => {
-  beforeEach(() => { vi.clearAllMocks(); sessionStorage.clear(); });
-  it.each(['full-duplex', 'human-vs-agent', 'split', 'coop'])('launches only SOLO even with mode=%s and a saved race launch', async (mode) => {
-    modeQuery = `mode=${mode}`;
-    sessionStorage.setItem('arena-demo-launch', JSON.stringify({ body: { mode: 'HUMAN_VS_AGENT', taskId: 'old-task' } }));
-    mockCreateSessionMutateAsync.mockResolvedValue({ id: 'solo-session' });
-    const { result } = renderHook(() => useTaskSelection());
-    expect(result.current.canStart).toBe(false);
-    await act(async () => { await result.current.handleStart(); });
-    expect(mockCreateSessionMutateAsync).not.toHaveBeenCalled();
+describe('demo human versus agent', () => {
+  beforeEach(() => { vi.resetAllMocks(); sessionStorage.clear(); });
+  it('starts a preset with an idempotency key', async () => {
+    mockRaceSession.mockResolvedValue({ id: 'race-session' });
+    const { result } = renderHook(() => useTaskSelection('HUMAN_VS_AGENT'));
     act(() => result.current.selectPreset(makeTask()));
     await act(async () => { await result.current.handleStart(); });
-    expect(mockCreateSessionMutateAsync).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ mode: 'SOLO', taskId: 'task-1' }));
-    expect(mockRaceSession).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenLastCalledWith('/arena/solo-session');
+    expect(mockValidateTaskMutateAsync).not.toHaveBeenCalled();
+    expect(mockRaceSession).toHaveBeenCalledWith('/sessions', expect.objectContaining({ taskId: 'task-1', mode: 'HUMAN_VS_AGENT' }),
+      { 'Idempotency-Key': expect.any(String) });
+    expect(mockNavigate).toHaveBeenCalledWith('/arena/race-session');
+    expect(sessionStorage.getItem('arena-demo-launch')).toBeNull();
+  });
+
+  it('moderates a custom task before launching', async () => {
+    mockValidateTaskMutateAsync.mockResolvedValue({ validationToken: 'token' });
+    mockCreateTaskMutateAsync.mockResolvedValue({ id: 'custom-task' });
+    mockRaceSession.mockResolvedValue({ id: 'race-session' });
+    const { result } = renderHook(() => useTaskSelection('HUMAN_VS_AGENT'));
+    act(() => result.current.setCustomDraft(LONG_ENOUGH_DRAFT));
+    await act(async () => { await result.current.handleStart(); });
+    expect(mockCreateTaskMutateAsync).toHaveBeenCalledWith(expect.objectContaining({ validationToken: 'token', prompt: LONG_ENOUGH_DRAFT }));
+    expect(mockRaceSession).toHaveBeenCalledWith('/sessions', expect.objectContaining({ taskId: 'custom-task' }), expect.any(Object));
+  });
+
+  it('recovers an uncertain launch using the original task and key after a reload', async () => {
+    mockRaceSession.mockRejectedValueOnce(new TypeError('network')).mockResolvedValueOnce({ id: 'race-session' });
+    const first = renderHook(() => useTaskSelection('HUMAN_VS_AGENT'));
+    act(() => first.result.current.selectPreset(makeTask()));
+    await act(async () => { await expect(first.result.current.handleStart()).rejects.toThrow('network'); });
+    expect(first.result.current.recoveringLaunch).toBe(true);
+    first.unmount();
+    const restored = renderHook(() => useTaskSelection('HUMAN_VS_AGENT'));
+    expect(restored.result.current.recoveringLaunch).toBe(true);
+    await act(async () => { await restored.result.current.handleStart(); });
+    expect(mockRaceSession.mock.calls[1]).toEqual(mockRaceSession.mock.calls[0]);
+    expect(mockNavigate).toHaveBeenCalledWith('/arena/race-session');
+  });
+
+  it('allows a new task after an explicit validation rejection from the session endpoint', async () => {
+    const { ApiError } = await import('@arena/ui/lib/api-client');
+    mockRaceSession.mockRejectedValueOnce(new ApiError('BAD_REQUEST', 'rejected', 400));
+    const { result } = renderHook(() => useTaskSelection('HUMAN_VS_AGENT'));
+    act(() => result.current.selectPreset(makeTask()));
+    await act(async () => { await expect(result.current.handleStart()).rejects.toThrow('rejected'); });
+    expect(result.current.recoveringLaunch).toBe(false);
+    expect(sessionStorage.getItem('arena-demo-launch')).toBeNull();
+  });
+
+  it('does not discard an uncertain launch when its recovery gets an explicit rejection', async () => {
+    const { ApiError } = await import('@arena/ui/lib/api-client');
+    mockRaceSession.mockRejectedValueOnce(new TypeError('network')).mockRejectedValueOnce(new ApiError('UNAUTHORIZED', 'unauthorized', 401));
+    const { result } = renderHook(() => useTaskSelection('HUMAN_VS_AGENT'));
+    act(() => result.current.selectPreset(makeTask()));
+    await act(async () => { await expect(result.current.handleStart()).rejects.toThrow('network'); });
+    await act(async () => { await expect(result.current.handleStart()).rejects.toThrow('unauthorized'); });
+    expect(result.current.recoveringLaunch).toBe(true);
+    expect(sessionStorage.getItem('arena-demo-launch')).not.toBeNull();
+  });
+
+  it('clears the saved launch error when dismissing the moderation alert', async () => {
+    const { ApiError } = await import('@arena/ui/lib/api-client');
+    mockValidateTaskMutateAsync.mockRejectedValueOnce(new ApiError('TASK_MODERATION_REJECTED', 'rejected', 400));
+    const { result } = renderHook(() => useTaskSelection('HUMAN_VS_AGENT'));
+    act(() => result.current.setCustomDraft(LONG_ENOUGH_DRAFT));
+    await act(async () => { await expect(result.current.handleStart()).rejects.toThrow('rejected'); });
+    expect(result.current.startError?.message).toBe('rejected');
+    act(() => result.current.dismissValidationError());
+    expect(result.current.startError).toBeNull();
   });
 });
