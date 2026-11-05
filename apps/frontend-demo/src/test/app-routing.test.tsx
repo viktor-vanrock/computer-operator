@@ -8,8 +8,10 @@ import { App } from '@/App';
 vi.mock('@/features', () => ({
   ArenaPage: () => <div>Экран арены</div>,
   LandingPage: () => <div>Старый лендинг</div>,
-  TaskSelectionPage: () => <h1>Выберите задание</h1>,
+  TaskSelectionPage: ({ mode }: { mode: string }) => <h1>{mode === 'HUMAN_VS_AGENT' ? 'Выберите задание для соревнования' : 'Выберите задание'}</h1>,
 }));
+
+vi.mock('@/features/results', () => ({ ResultsPage: () => <h1>Результаты соревнования</h1> }));
 
 vi.mock('@arena/ui/hooks/use-theme', () => ({
   useTheme: () => ({ theme: 'light', toggleTheme: vi.fn() }),
@@ -34,17 +36,28 @@ describe('demo routing', () => {
     renderApp('/tasks?mode=human-vs-agent');
     await waitFor(() => expect(screen.getByLabelText('Текущий путь').textContent).toBe('/'));
   });
-  it.each(['/?mode=full-duplex', '/?mode=human-vs-agent', '/arena/old-race/results'])('redirects disabled entry %s to SOLO task selection', async (path) => {
+  it.each(['/?mode=full-duplex', '/?mode=human-vs-agent'])('redirects legacy entry %s to SOLO task selection', async (path) => {
     renderApp(path);
     await waitFor(() => expect(screen.getByLabelText('Текущий путь').textContent).toBe('/'));
     expect(screen.getByRole('heading', { name: 'Выберите задание' })).toBeInTheDocument();
   });
-  it('показывает выбор заданий на главной без навигационного меню', () => {
+  it('показывает выбор заданий и оба режима в навигации', () => {
     renderApp('/');
 
     expect(screen.getByRole('heading', { name: 'Выберите задание' })).toBeInTheDocument();
     expect(screen.queryByText('Старый лендинг')).not.toBeInTheDocument();
-    expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Задание агенту' })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: 'Человек vs агент' })).toHaveAttribute('href', '/human-vs-agent');
+  });
+
+  it('открывает выбор задания соревнования по прямой ссылке', () => {
+    renderApp('/human-vs-agent');
+    expect(screen.getByRole('heading', { name: 'Выберите задание для соревнования' })).toBeInTheDocument();
+  });
+
+  it('открывает результаты соревнования', () => {
+    renderApp('/arena/session/results');
+    expect(screen.getByRole('heading', { name: 'Результаты соревнования' })).toBeInTheDocument();
   });
 
   it('перенаправляет старый адрес заданий на главную', async () => {

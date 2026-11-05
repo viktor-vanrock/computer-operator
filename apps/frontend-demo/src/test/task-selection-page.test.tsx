@@ -22,7 +22,9 @@ vi.mock('@arena/ui/api/tasks.api', () => ({
 
 const hookState = {
   validationError: false,
+  recoveringLaunch: false,
   dismissValidationError: vi.fn(),
+  handleStart: vi.fn(),
 };
 
 vi.mock('@/features/task-selection/use-task-selection', () => ({
@@ -30,14 +32,30 @@ vi.mock('@/features/task-selection/use-task-selection', () => ({
     selectedTask: null,
     customDraft: '',
     setCustomDraft: vi.fn(),
-    handleStart: vi.fn(),
+    handleStart: hookState.handleStart,
     isStarting: false,
     validationError: hookState.validationError,
+    recoveringLaunch: hookState.recoveringLaunch,
     dismissValidationError: hookState.dismissValidationError,
   }),
 }));
 
 describe('TaskSelectionPage', () => {
+  it('объясняет сценарий соревнования', () => {
+    render(<TaskSelectionPage mode="HUMAN_VS_AGENT" />);
+    expect(screen.getByText('Выполните задание и сравните свой результат с агентом')).toBeInTheDocument();
+  });
+
+  it('просит восстановить предыдущий запуск и не позволяет выбрать другое задание', () => {
+    hookState.recoveringLaunch = true;
+    hookState.handleStart.mockResolvedValue(undefined);
+    render(<TaskSelectionPage mode="HUMAN_VS_AGENT" />);
+    expect(screen.getByText(/Восстановите его, прежде чем начать новое/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Задание с сервера' })).toBeDisabled();
+    screen.getByRole('button', { name: 'Восстановить соревнование' }).click();
+    expect(hookState.handleStart).toHaveBeenCalledOnce();
+    hookState.recoveringLaunch = false;
+  });
   it('показывает поле запроса и быстрые действия', () => {
     render(<TaskSelectionPage />);
 
