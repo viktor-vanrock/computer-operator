@@ -40,8 +40,8 @@ export function TaskSelectionPage({ mode = 'SOLO' }: { mode?: 'SOLO' | 'HUMAN_VS
       <div className={styles.main}>
         <motion.div className={styles.titleBlock} {...FADE_UP}>
           <p className={styles.pageEyebrow}>Арена AI агентов</p>
-          <h1 className={styles.pageTitle}>{mode === 'HUMAN_VS_AGENT' ? 'Соревнование: человек vs агент' : 'Введите запрос для агента'}</h1>
-          <p className={styles.pageSubtitle}>{mode === 'HUMAN_VS_AGENT' ? 'Выполните задание и сравните свой результат с агентом' : 'Опишите своё задание или выберите готовое'}</p>
+          <h1 className={styles.pageTitle}>{'HUMAN_VS_AGENT' === mode ? 'Соревнование: человек vs агент' : 'Введите запрос для агента'}</h1>
+          <p className={styles.pageSubtitle}>{'HUMAN_VS_AGENT' === mode ? 'Выполните задание и сравните свой результат с агентом' : 'Опишите своё задание или выберите готовое'}</p>
         </motion.div>
 
         <motion.div
@@ -52,6 +52,7 @@ export function TaskSelectionPage({ mode = 'SOLO' }: { mode?: 'SOLO' | 'HUMAN_VS
           {recoveringLaunch ? (
             <div role="alert">
               <p>Не удалось узнать, началось ли предыдущее соревнование. Восстановите его, прежде чем начать новое.</p>
+              {startError && !validationError ? <p>Не удалось восстановить соревнование: {startError.message}</p> : null}
               <button type="button" disabled={isStarting} onClick={() => { void handleStart().catch(() => undefined); }}>
                 {isStarting ? 'Восстанавливаем…' : 'Восстановить соревнование'}
               </button>
@@ -64,7 +65,7 @@ export function TaskSelectionPage({ mode = 'SOLO' }: { mode?: 'SOLO' | 'HUMAN_VS
             isSubmitting={isStarting}
             hasSelectedTask={Boolean(selectedTask)}
           />}
-          {startError && !validationError ? <p role="alert">{startError.message}</p> : null}
+          {startError && !validationError && !recoveringLaunch ? <p role="alert">{startError.message}</p> : null}
           <div className={styles.quickActions} aria-label="Готовые задания">
             {areTasksLoading ? <span className={styles.quickActionsStatus}>Загружаем задания…</span> : null}
             {areTasksError ? <span className={styles.quickActionsError}>Не удалось загрузить задания</span> : null}

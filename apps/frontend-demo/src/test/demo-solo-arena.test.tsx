@@ -27,9 +27,13 @@ describe('demo arena restriction', () => {
   });
   it('opens the human versus agent arena', () => {
     state.mode = 'HUMAN_VS_AGENT';
-    render(<MemoryRouter initialEntries={['/arena/session']}><Routes>
-      <Route path="/arena/:sessionId" element={<ArenaPage />} />
-    </Routes></MemoryRouter>);
+    render(
+      <MemoryRouter initialEntries={['/arena/session']}>
+        <Routes>
+          <Route path="/arena/:sessionId" element={<ArenaPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
     expect(screen.getByRole('heading', { name: 'Арена соревнования' })).toBeInTheDocument();
     expect(state.useArena).not.toHaveBeenCalled();
   });

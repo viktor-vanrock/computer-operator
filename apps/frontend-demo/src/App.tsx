@@ -8,10 +8,13 @@ import { ResultsPage } from './features/results';
 
 export function App() {
   return (
-    <AppLayout logoHref={ROUTES.TASK_SELECTION} navItems={[
-      { label: 'Задание агенту', to: ROUTES.TASK_SELECTION, end: true },
-      { label: 'Человек vs агент', to: ROUTES.HUMAN_AGENT },
-    ]} headerVariant="minimal">
+    <AppLayout logoHref={ROUTES.TASK_SELECTION}
+      navItems={[
+        { label: 'Задание агенту', to: ROUTES.TASK_SELECTION, end: true },
+        { label: 'Человек vs агент', to: ROUTES.HUMAN_AGENT },
+      ]}
+      headerVariant="minimal"
+    >
       <Routes>
         <Route path={ROUTES.TASK_SELECTION} element={<TaskSelectionRoute mode="SOLO" />} />
         <Route path={ROUTES.HUMAN_AGENT} element={<TaskSelectionRoute mode="HUMAN_VS_AGENT" />} />

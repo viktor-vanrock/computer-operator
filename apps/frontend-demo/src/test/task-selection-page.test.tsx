@@ -23,6 +23,7 @@ vi.mock('@arena/ui/api/tasks.api', () => ({
 const hookState = {
   validationError: false,
   recoveringLaunch: false,
+  startError: null as Error | null,
   dismissValidationError: vi.fn(),
   handleStart: vi.fn(),
 };
@@ -36,6 +37,7 @@ vi.mock('@/features/task-selection/use-task-selection', () => ({
     isStarting: false,
     validationError: hookState.validationError,
     recoveringLaunch: hookState.recoveringLaunch,
+    startError: hookState.startError,
     dismissValidationError: hookState.dismissValidationError,
   }),
 }));
@@ -55,6 +57,16 @@ describe('TaskSelectionPage', () => {
     screen.getByRole('button', { name: 'Восстановить соревнование' }).click();
     expect(hookState.handleStart).toHaveBeenCalledOnce();
     hookState.recoveringLaunch = false;
+  });
+
+  it('показывает ошибку восстановления в одном уведомлении', () => {
+    hookState.recoveringLaunch = true;
+    hookState.startError = new Error('Сервер недоступен');
+    render(<TaskSelectionPage mode="HUMAN_VS_AGENT" />);
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
+    expect(screen.getByRole('alert')).toHaveTextContent('Не удалось восстановить соревнование: Сервер недоступен');
+    hookState.recoveringLaunch = false;
+    hookState.startError = null;
   });
   it('показывает поле запроса и быстрые действия', () => {
     render(<TaskSelectionPage />);

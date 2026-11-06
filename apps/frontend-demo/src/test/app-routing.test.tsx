@@ -8,7 +8,7 @@ import { App } from '@/App';
 vi.mock('@/features', () => ({
   ArenaPage: () => <div>Экран арены</div>,
   LandingPage: () => <div>Старый лендинг</div>,
-  TaskSelectionPage: ({ mode }: { mode: string }) => <h1>{mode === 'HUMAN_VS_AGENT' ? 'Выберите задание для соревнования' : 'Выберите задание'}</h1>,
+  TaskSelectionPage: ({ mode }: { mode: string }) => <h1>{'HUMAN_VS_AGENT' === mode ? 'Выберите задание для соревнования' : 'Выберите задание'}</h1>,
 }));
 
 vi.mock('@/features/results', () => ({ ResultsPage: () => <h1>Результаты соревнования</h1> }));

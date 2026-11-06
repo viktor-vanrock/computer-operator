@@ -5,6 +5,7 @@ import { ArenaHumanAgent } from '@arena/ui/arena-human-agent';
 import { SessionIdleWarning } from '@arena/ui/ui/session-idle-warning';
 
 import { getModelLabel } from '@/constants/arena';
+import { ROUTES } from '@/constants/routes';
 
 import { useArena } from './arena.use-arena';
 import { ArenaPlayer, ArenaThoughts, ArenaTopBar } from './components';
@@ -19,7 +20,7 @@ export function ArenaPage() {
   if (!session) return <p>Загружаем сессию…</p>;
   if ('HUMAN_VS_AGENT' === session.mode) return <ArenaHumanAgent
     sessionId={sessionId}
-    onBack={() => navigate('/human-vs-agent')}
+    onBack={() => navigate(ROUTES.HUMAN_AGENT)}
     showDetails
     autoFinishOnAgent={false}
     onRestart={(id) => navigate(`/arena/${id}`, { replace: true })}

@@ -345,4 +345,14 @@ describe('demo human versus agent', () => {
     act(() => result.current.dismissValidationError());
     expect(result.current.startError).toBeNull();
   });
+
+  it('keeps a different launch error when dismissing the moderation alert', async () => {
+    const { ApiError } = await import('@arena/ui/lib/api-client');
+    mockRaceSession.mockRejectedValueOnce(new ApiError('BAD_REQUEST', 'session rejected', 400));
+    const { result } = renderHook(() => useTaskSelection('HUMAN_VS_AGENT'));
+    act(() => result.current.selectPreset(makeTask()));
+    await act(async () => { await expect(result.current.handleStart()).rejects.toThrow('session rejected'); });
+    act(() => result.current.dismissValidationError());
+    expect(result.current.startError?.message).toBe('session rejected');
+  });
 });

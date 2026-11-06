@@ -5,7 +5,7 @@ import { useValidateTask } from '@arena/ui/api/moderation.api';
 import { useCreateSession } from '@arena/ui/api/sessions.api';
 import { useCreateTask } from '@arena/ui/api/tasks.api';
 import { usePendingLaunch } from '@arena/ui/hooks/use-pending-launch';
-import { ApiError, apiClient } from '@arena/ui/lib/api-client';
+import { apiClient,ApiError } from '@arena/ui/lib/api-client';
 import type { CreateSessionInput, Session } from '@arena/ui/types/session.types';
 import type { Task } from '@arena/ui/types/task.types';
 
@@ -41,7 +41,7 @@ export function useTaskSelection(mode: 'SOLO' | 'HUMAN_VS_AGENT' = 'SOLO') {
 
   const dismissValidationError = useCallback(() => {
     validateTask.reset();
-    setLaunchError(null);
+    setLaunchError((error) => error instanceof ApiError && 'TASK_MODERATION_REJECTED' === error.code ? null : error);
   }, [validateTask]);
 
   const createTaskMutateRef = useRef(createTask.mutateAsync);
@@ -128,7 +128,7 @@ export function useTaskSelection(mode: 'SOLO' | 'HUMAN_VS_AGENT' = 'SOLO') {
     setLaunchError(null);
     try { await startOnce(); }
     catch (error) {
-      if (mode === 'HUMAN_VS_AGENT') {
+      if ('HUMAN_VS_AGENT' === mode) {
         const definiteRejection = error instanceof ApiError && [400, 401, 403, 404, 422].includes(error.status);
         const saved = pendingLaunch.read();
         if (definiteRejection && !recoveringLaunch) pendingLaunch.clear();
@@ -152,7 +152,7 @@ export function useTaskSelection(mode: 'SOLO' | 'HUMAN_VS_AGENT' = 'SOLO') {
     clearSelection,
     handleStart,
     canStart,
-    recoveringLaunch: mode === 'HUMAN_VS_AGENT' && recoveringLaunch,
+    recoveringLaunch: 'HUMAN_VS_AGENT' === mode && recoveringLaunch,
     isStarting: launchBusy || validateTask.isPending || createSession.isPending || createTask.isPending,
     startError: launchError ?? validateTask.error ?? createSession.error ?? createTask.error,
     validationError: validateTask.error instanceof ApiError && 'TASK_MODERATION_REJECTED' === validateTask.error.code,
